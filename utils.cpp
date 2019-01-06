@@ -30,15 +30,15 @@
 extern "C" {
     /* declare BLAS functions, see http://www.netlib.org/clapack/cblas/ */
 
-    int sgemm_ (const char *transa, const char *transb, FINTEGER *m, FINTEGER *
-                n, FINTEGER *k, const float *alpha, const float *a,
-                            FINTEGER *lda, const float *b, FINTEGER *
-                ldb, float *beta, float *c, FINTEGER *ldc);
+    int sgemm_(const char *transa, const char *transb, FINTEGER *m, FINTEGER *
+    n, FINTEGER *k, const float *alpha, const float *a,
+               FINTEGER *lda, const float *b, FINTEGER *
+    ldb, float *beta, float *c, FINTEGER *ldc);
 
     /* Lapack functions, see http://www.netlib.org/clapack/old/single/sgeqrf.c */
 
-    int sgeqrf_ (FINTEGER *m, FINTEGER *n, float *a, FINTEGER *lda,
-                 float *tau, float *work, FINTEGER *lwork, FINTEGER *info);
+    int sgeqrf_(FINTEGER *m, FINTEGER *n, float *a, FINTEGER *lda,
+                float *tau, float *work, FINTEGER *lwork, FINTEGER *info);
 
     int sorgqr_(FINTEGER *m, FINTEGER *n, FINTEGER *k, float *a,
                 FINTEGER *lda, float *tau, float *work,
@@ -47,8 +47,8 @@ extern "C" {
 
 namespace faiss_v {
     /// Matrix/vector ops
-    void fvec_norms_L2sqr (float* __restrict nr, const float* __restrict x,
-            size_t d, size_t nx) {
+    void fvec_norms_L2sqr(float *__restrict nr, const float *__restrict x,
+                          size_t d, size_t nx) {
 #pragma omp parallel for
         for (size_t i = 0; i < nx; i++) {
             nr[i] = fvec_norm_L2sqr(x + i * d, d);
@@ -56,17 +56,17 @@ namespace faiss_v {
     }
 
     /// KNN functions
-    static void knn_L2sqr_sse (const float* x, const float* y,
-                               size_t d, size_t nx, size_t ny,
-                               float_maxheap_array_t* res) {
+    static void knn_L2sqr_sse(const float *x, const float *y,
+                              size_t d, size_t nx, size_t ny,
+                              float_maxheap_array_t *res) {
         size_t k = res->k;
 #pragma omp parallel for
         for (size_t i = 0; i < nx; i++) {
-            const float* x_i = x + i * d;
-            const float* y_j = y;
-            size_t  j;
-            float* __restrict simi = res->get_val(i);
-            long* __restrict idxi = res->get_id(i);
+            const float *x_i = x + i * d;
+            const float *y_j = y;
+            size_t j;
+            float *__restrict simi = res->get_val(i);
+            long *__restrict idxi = res->get_id(i);
 
             maxheap_heapify(k, simi, idxi);
             for (j = 0; j < ny; j++) {
@@ -82,10 +82,10 @@ namespace faiss_v {
         }
     }
 
-    template <class DistanceCorrection>
-    static void knn_L2sqr_blas (const float* x, const float* y,
-            size_t d, size_t nx, size_t ny, float_maxheap_array_t* res,
-            const DistanceCorrection &corr) {
+    template<class DistanceCorrection>
+    static void knn_L2sqr_blas(const float *x, const float *y,
+                               size_t d, size_t nx, size_t ny, float_maxheap_array_t *res,
+                               const DistanceCorrection &corr) {
         res->heapify();
 
         // Omit empty matrices
@@ -94,14 +94,14 @@ namespace faiss_v {
         size_t k = res->k;
 
         // block size
-        const size_t  bs_x = 4096, bs_y = 1024;
+        const size_t bs_x = 4096, bs_y = 1024;
         // const size_t bs_x = 16, bs_y = 16;
-        float* ip_block = new float[bs_x * bs_y];
+        float *ip_block = new float[bs_x * bs_y];
 
-        float* x_norms = new float[nx];
+        float *x_norms = new float[nx];
         fvec_norms_L2sqr(x_norms, x, d, nx);
 
-        float* y_norms = new float[ny];
+        float *y_norms = new float[ny];
         fvec_norms_L2sqr(y_norms, y, d, ny);
 
         for (size_t i0 = 0; i0 < nx; i0 += bs_x) {
@@ -115,17 +115,17 @@ namespace faiss_v {
                 // compute the dot products
                 float one = 1, zero = 0;
                 FINTEGER nyi = j1 - j0, nxi = i1 - i0, di = d;
-                sgemm_ ("Transpose", "Not transpose", &nyi, &nxi, &di, &one,
-                        y + j0 * d, &di,
-                        x + i0 * d, &di, &zero,
-                        ip_block, &nyi);
+                sgemm_("Transpose", "Not transpose", &nyi, &nxi, &di, &one,
+                       y + j0 * d, &di,
+                       x + i0 * d, &di, &zero,
+                       ip_block, &nyi);
 
                 // collect minima
 #pragma omp parallel for
                 for (size_t i = i0; i < i1; ++i) {
-                    float* __restrict simi = res->get_val(i);
-                    long* __restrict idxi = res->get_id(i);
-                    const float* ip_line = ip_block + (i - i0) * (j1 - j0);
+                    float *__restrict simi = res->get_val(i);
+                    long *__restrict idxi = res->get_id(i);
+                    const float *ip_line = ip_block + (i - i0) * (j1 - j0);
 
                     for (size_t j = j0; j < j1; j++) {
                         float ip = *ip_line++;
@@ -143,9 +143,9 @@ namespace faiss_v {
 
         res->reorder();
 
-        delete [] ip_block;
-        delete [] x_norms;
-        delete [] y_norms;
+        delete[] ip_block;
+        delete[] x_norms;
+        delete[] y_norms;
     }
 
     /// KNN driver functions
@@ -157,9 +157,9 @@ namespace faiss_v {
         }
     };
 
-    void knn_L2sqr (const float* x, const float* y,
-                    size_t d, size_t nx, size_t ny,
-                    float_maxheap_array_t* res) {
+    void knn_L2sqr(const float *x, const float *y,
+                   size_t d, size_t nx, size_t ny,
+                   float_maxheap_array_t *res) {
         if (d % 4 == 0 && nx < distance_compute_blas_threshold) {
             knn_L2sqr_sse(x, y, d, nx, ny, res);
         } else {

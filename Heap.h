@@ -76,7 +76,7 @@ namespace faiss_v {
                 bh_ids[i] = bh_ids[i1];
                 i = i1;
             }
-            // right child
+                // right child
             else {
                 if (C::cmp(val, bh_val[i2]))
                     break;
@@ -112,24 +112,28 @@ namespace faiss_v {
         bh_ids[i] = ids;
     }
 
-    template <typename T> inline
-    void minheap_pop (size_t k, T* bh_val, long* bh_ids) {
-        heap_pop<CMin<T, long>> (k, bh_val, bh_ids);
+    template<typename T>
+    inline
+    void minheap_pop(size_t k, T *bh_val, long *bh_ids) {
+        heap_pop<CMin<T, long>>(k, bh_val, bh_ids);
     }
 
-    template <typename T> inline
-    void maxheap_pop (size_t k, T* bh_val, long* bh_ids) {
-        heap_pop<CMax<T, long>> (k, bh_val, bh_ids);
+    template<typename T>
+    inline
+    void maxheap_pop(size_t k, T *bh_val, long *bh_ids) {
+        heap_pop<CMax<T, long>>(k, bh_val, bh_ids);
     }
 
-    template <typename T> inline
-    void minheap_push (size_t k, T* bh_val, long* bh_ids) {
-        heap_pop<CMax<T, long> > (k, bh_val, bh_ids);
+    template<typename T>
+    inline
+    void minheap_push(size_t k, T *bh_val, long *bh_ids) {
+        heap_pop<CMax<T, long> >(k, bh_val, bh_ids);
     }
 
-    template <typename T> inline
-    void maxheap_push (size_t k, T * bh_val, long * bh_ids, T val, long ids) {
-        heap_push<CMax<T, long> > (k, bh_val, bh_ids, val, ids);
+    template<typename T>
+    inline
+    void maxheap_push(size_t k, T *bh_val, long *bh_ids, T val, long ids) {
+        heap_push<CMax<T, long> >(k, bh_val, bh_ids, val, ids);
     }
 
     /// Heap initialization
@@ -158,19 +162,19 @@ namespace faiss_v {
         }
     }
 
-    template <typename T> inline
-    void minheap_heapify (size_t k, T *  bh_val, long * bh_ids,
-            const T * x = nullptr, const long * ids = nullptr, size_t k0 = 0)
-    {
-        heap_heapify< CMin<T, long> > (k, bh_val, bh_ids, x, ids, k0);
+    template<typename T>
+    inline
+    void minheap_heapify(size_t k, T *bh_val, long *bh_ids,
+                         const T *x = nullptr, const long *ids = nullptr, size_t k0 = 0) {
+        heap_heapify<CMin<T, long> >(k, bh_val, bh_ids, x, ids, k0);
     }
 
 
-    template <typename T> inline
-    void maxheap_heapify (size_t k, T * bh_val, long * bh_ids,
-            const T * x = nullptr, const long * ids = nullptr, size_t k0 = 0)
-    {
-        heap_heapify< CMax<T, long> > (k, bh_val, bh_ids, x, ids, k0);
+    template<typename T>
+    inline
+    void maxheap_heapify(size_t k, T *bh_val, long *bh_ids,
+                         const T *x = nullptr, const long *ids = nullptr, size_t k0 = 0) {
+        heap_heapify<CMax<T, long> >(k, bh_val, bh_ids, x, ids, k0);
     }
 
     /// Add some elements to the heap
@@ -196,23 +200,24 @@ namespace faiss_v {
         }
     }
 
-    template <typename T> inline
-    void minheap_addn (size_t k, T * bh_val, long * bh_ids,
-                       const T * x, const long * ids, size_t n)
-    {
-        heap_addn<CMin<T, long> > (k, bh_val, bh_ids, x, ids, n);
+    template<typename T>
+    inline
+    void minheap_addn(size_t k, T *bh_val, long *bh_ids,
+                      const T *x, const long *ids, size_t n) {
+        heap_addn<CMin<T, long> >(k, bh_val, bh_ids, x, ids, n);
     }
 
-    template <typename T> inline
-    void maxheap_addn (size_t k, T * bh_val, long * bh_ids,
-                       const T * x, const long * ids, size_t n)
-    {
-        heap_addn<CMax<T, long> > (k, bh_val, bh_ids, x, ids, n);
+    template<typename T>
+    inline
+    void maxheap_addn(size_t k, T *bh_val, long *bh_ids,
+                      const T *x, const long *ids, size_t n) {
+        heap_addn<CMax<T, long> >(k, bh_val, bh_ids, x, ids, n);
     }
 
     /// Heap finialization (reorder elements)
-    template <typename C> inline
-    size_t heap_reorder (size_t k, typename C::T* bh_val, typename C::TI* bh_ids) {
+    template<typename C>
+    inline
+    size_t heap_reorder(size_t k, typename C::T *bh_val, typename C::TI *bh_ids) {
         size_t i, ii;
         for (i = 0, ii = 0; i < k; i++) {
             // top element should be put at the end of the list
@@ -220,17 +225,17 @@ namespace faiss_v {
             typename C::TI id = bh_ids[0];
 
             // boundary case: we will over-ride this value if not a true element
-            heap_pop<C> (k-i, bh_val, bh_ids);
-            bh_val[k-ii-1] = val;
-            bh_ids[k-ii-1] = id;
+            heap_pop<C>(k - i, bh_val, bh_ids);
+            bh_val[k - ii - 1] = val;
+            bh_ids[k - ii - 1] = id;
             if (id != -1) ii++;
         }
 
         // count the number of elements which are effectively returned
         size_t nel = ii;
 
-        memmove(bh_val, bh_val+k-ii, ii * sizeof(*bh_val));
-        memmove(bh_ids, bh_ids+k-ii, ii * sizeof(*bh_ids));
+        memmove(bh_val, bh_val + k - ii, ii * sizeof(*bh_val));
+        memmove(bh_ids, bh_ids + k - ii, ii * sizeof(*bh_ids));
 
         for (; ii < k; ii++) {
             bh_val[ii] = C::neutral();
@@ -240,16 +245,16 @@ namespace faiss_v {
         return nel;
     }
 
-    template <typename T> inline
-    size_t minheap_reorder (size_t k, T * bh_val, long * bh_ids)
-    {
-        return heap_reorder< CMin<T, long> > (k, bh_val, bh_ids);
+    template<typename T>
+    inline
+    size_t minheap_reorder(size_t k, T *bh_val, long *bh_ids) {
+        return heap_reorder<CMin<T, long> >(k, bh_val, bh_ids);
     }
 
-    template <typename T> inline
-    size_t maxheap_reorder (size_t k, T * bh_val, long * bh_ids)
-    {
-        return heap_reorder< CMax<T, long> > (k, bh_val, bh_ids);
+    template<typename T>
+    inline
+    size_t maxheap_reorder(size_t k, T *bh_val, long *bh_ids) {
+        return heap_reorder<CMax<T, long> >(k, bh_val, bh_ids);
     }
 
     /// Operations on heap arrays
