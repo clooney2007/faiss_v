@@ -6,10 +6,13 @@
 
 #include "utils.h"
 
+#include <cstdio>
+#include <cassert>
+#include <cstring>
+#include <cmath>
+
 #ifdef __SSE__
-
 #include <immintrin.h>
-
 #endif
 
 #ifdef __aarch64__
@@ -19,6 +22,7 @@
 #include <omp.h>
 
 namespace faiss_v {
+
 #ifdef __AVX__
 #define USE_AVX
 #endif
@@ -152,7 +156,7 @@ namespace faiss_v {
 #elif defined(__SSE__)
 
     // SSE-implementation of L2 distance
-    float fevc_L2sqr (const float* x, const float* y, size_t d) {
+    float fvec_L2sqr (const float* x, const float* y, size_t d) {
         __m128 msum1 = _mm_setzero_ps();
 
         while (d >= 4) {
@@ -179,7 +183,7 @@ namespace faiss_v {
 
 #elif defined(__aarch64__)
 
-    float fevc_L2sqr(const float* x, const float* y, size_t d) {
+    float fvec_L2sqr(const float* x, const float* y, size_t d) {
         if (d & 3) return fevc_L2sqr_ref(x, y, d);
         float32x4_t accu = vdupq_n_f32(0);
         for (size_t i = 0; i < d; i += 4) {

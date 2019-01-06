@@ -9,10 +9,12 @@
 *~
 *.log
 .idea*
+/build
 /config.*
 /aclocal.m4
 /autom4te.cache/
 /makefile.in
+/makefile.inc
 /bin/
 /c_api/bin/
 /c_api/gpu/bin/

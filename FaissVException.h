@@ -14,17 +14,17 @@ namespace faiss_v {
     /// Base class for Faiss exceptions
     class FaissVException : public std::exception {
     public:
-        explicit FaissVException(const std::string& msg);
+      explicit FaissVException(const std::string& msg);
 
-        FaissVException(const std::string& msg,
-                       const char* funcName,
-                       const char* file,
-                       int line);
+      FaissVException(const std::string& msg,
+                     const char* funcName,
+                     const char* file,
+                     int line);
 
-        /// from std::exception
-        const char* what() const noexcept override;
+      /// from std::exception
+      const char* what() const noexcept override ;
 
-        std::string msg;
+      std::string msg;
     };
 }
 

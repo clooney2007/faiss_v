@@ -11,16 +11,25 @@
 #include "Index.h"
 
 namespace faiss_v {
-    struct IndexFlat: Index {
-        std::vector<float> xb;
-        explicit IndexFlat(idx_t d, MetricType metric = METRIC_L2);
+struct IndexFlat : Index {
+  std::vector<float> xb;
 
-        void add(idx_t n, const float* x) override;
-        void search(idx_t n, const float *x, idx_t k, float *distance, idx_t *labels) const override;
-        void reset() override;
+  explicit IndexFlat(idx_t d, MetricType metric = METRIC_L2);
 
-        IndexFlat() {}
-    };
+  void add(idx_t n, const float *x) override;
+
+  void search(idx_t n, const float *x, idx_t k, float *distance, idx_t *labels) const override;
+
+  void reset() override;
+
+  IndexFlat() {}
+};
+
+struct IndexFlatL2 : IndexFlat {
+  explicit IndexFlatL2(idx_t d) : IndexFlat(d, METRIC_L2) {}
+
+  IndexFlatL2() {}
+};
 }
 
 

@@ -1,0 +1,44 @@
+#-include makefile.inc
+
+SRC=$(wildcard *.cpp)
+OBJ=$(SRC:.cpp=.o)
+
+CXX          = g++
+CXXCPP       = @CXXCPP@
+CPPFLAGS     = -DFINTEGER=int
+CXXFLAGS     = -fPIC -m64 -Wno-sign-compare -g -O2 -std=gnu++11
+CPUFLAGS     = -msse4 -mpopcnt
+LDFLAGS      = @OPENMP_LDFLAGS@ @LDFLAGS@
+LIBS         = @BLAS_LIBS@ @LAPACK_LIBS@ @LIBS@
+PYTHONCFLAGS = @PYTHON_CFLAGS@ -I@NUMPY_INCLUDE@
+
+SHAREDEXT   = so
+SHAREDFLAGS = -shared
+
+ifeq ($(OS),Darwin)
+	SHAREDEXT   = dylib
+	SHAREDFLAGS = -dynamiclib -undefined dynamic_lookup
+endif
+
+############################
+# Building
+
+default: libfaiss.a
+
+all: libfaiss.a libfaiss.$(SHAREDEXT)
+
+libfaiss.a: $(OBJ)
+	ar r $@ $^
+
+libfaiss.$(SHAREDEXT): $(OBJ)
+	$(CXX) $(SHAREDFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+%.o: %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CPUFLAGS) -c $< -o $@
+
+clean:
+	rm -f libfaiss.*
+	rm -f $(OBJ)
+
+
+.PHONY: all clean default demos install installdirs py test uninstall

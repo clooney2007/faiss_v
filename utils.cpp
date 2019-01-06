@@ -6,9 +6,22 @@
 
 #include "utils.h"
 
+#include <cstdio>
+#include <cassert>
+#include <cstring>
+#include <cmath>
+
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <omp.h>
 
+
 #include <algorithm>
+#include <vector>
+
+#include "FaissVAssert.h"
 
 #ifndef FINTEGER
 #define FINTEGER long
@@ -116,9 +129,9 @@ namespace faiss_v {
 
                     for (size_t j = j0; j < j1; j++) {
                         float ip = *ip_line++;
-                        float dis = x_norms[i] + y_norms[j] - 2 * ip;
+                        float dis2 = x_norms[i] + y_norms[j] - 2 * ip;
 
-                        dis = corr(dis, i, j);
+                        float dis = corr(dis2, i, j);
                         if (dis < simi[0]) {
                             maxheap_pop(k, simi, idxi);
                             maxheap_push(k, simi, idxi, dis, j);

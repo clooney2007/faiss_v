@@ -47,7 +47,7 @@ namespace faiss_v {
         }
 
         inline static T neutral() {
-            return std::numeric_limits<T>::min();
+            return std::numeric_limits<T>::max();
         }
     };
 
@@ -76,7 +76,7 @@ namespace faiss_v {
                 bh_ids[i] = bh_ids[i1];
                 i = i1;
             }
-                // right child
+            // right child
             else {
                 if (C::cmp(val, bh_val[i2]))
                     break;
@@ -106,6 +106,7 @@ namespace faiss_v {
                 break;
             bh_val[i] = bh_val[i_father];
             bh_ids[i] = bh_ids[i_father];
+            i = i_father;
         }
         bh_val[i] = val;
         bh_ids[i] = ids;
