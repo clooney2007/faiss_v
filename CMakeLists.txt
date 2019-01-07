@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.7)
+
 project(faiss_v C CXX)
+
 option(BUILD_TUTORIAL "Build tutorials" ON)
 option(BUILD_TEST "Build tests" ON)
 option(BUILD_WITH_GPU "Build faiss with gpu (cuda) support" ON)
@@ -38,10 +40,15 @@ list(REMOVE_ITEM faiss_cpu_cpp  ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 message(${faiss_cpu_cpp})
 
 set(faiss_lib faiss_v)
-#add_executable(faiss_v main.cpp Index.cpp Index.h IndexFlat.cpp IndexFlat.h Heap.cpp Heap.h FaissVAssert.h FaissVException.h FaissVException.cpp utils.cpp utils.h utils_simd.cpp)
 #add_executable(${faiss_lib} ${faiss_cpu_headers} ${faiss_cpu_cpp})
 add_library(${faiss_lib} STATIC ${faiss_cpu_headers} ${faiss_cpu_cpp})
 target_link_libraries(${faiss_lib} ${OpenMP_CXX_FLAGS} ${BLAS_LIB})
+
+# build gpu lib
+if(BUILD_WITH_GPU)
+    include(cmake/Cuda.cmake)
+    add_subdirectory(gpu)
+endif(BUILD_WITH_GPU)
 
 # build tests
 if(BUILD_TEST)
@@ -50,6 +57,6 @@ endif(BUILD_TEST)
 # Install libraries
 install(TARGETS ${faiss_lib}
     ARCHIVE DESTINATION lib
-    )
+)
 install(FILES ${faiss_cpu_headers} DESTINATION include/faiss_v)
 
