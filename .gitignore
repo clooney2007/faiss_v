@@ -9,6 +9,7 @@
 *~
 *.log
 .idea*
+/.deps
 /build
 /config.*
 /aclocal.m4
