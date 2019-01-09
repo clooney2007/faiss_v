@@ -7,6 +7,7 @@
 #include "GpuIndexFlat.h"
 #include "../IndexFlat.h"
 #include "utils/DeviceUtils.h"
+#include "utils/Float16.cuh"
 #include "impl/FlatIndex.cuh"
 
 namespace faiss_v { namespace gpu {
@@ -61,5 +62,22 @@ GpuIndexFlat::~GpuIndexFlat() {
     delete data_;
 }
 
+void
+GpuIndexFlat::verifySettings_() const {
+    // Ensure Hgemm is supported on this device
+    if(config_.useFloat16Accumulator) {
+#define FAISS_USE_FLOAT16
+        FAISSV_THROW_IF_NOT_MSG(config_.useFlat16,
+                                "useFloat16Accumulator can only be enabled "
+                                    "with useFloat16");
+        FAISSV_THROW_IF_NOT_FMT(getDeviceSupportsFloat16Math(config_.device),
+                                "Device %d does not support Hgemm "
+                                    "(useFloat16Accumulator)",
+                                config_.device);
+    }
+#else
+    FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
+#endif
+}
 
 }}
