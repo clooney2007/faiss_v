@@ -62,7 +62,7 @@ TEST(INDEXFLATTEST, INDEXFLAT) {
 //      printf("Q: %d, Top: %d, idx: %d, dis: %f\n", j, i, refI[i + j * k], refD[i + j * k]);
 //    }
 //  }
-  printf("Index num: %d\n", cd.index.xb.size());
+  printf("Index num: %ld\n", cd.index.xb.size());
 }
 
 }

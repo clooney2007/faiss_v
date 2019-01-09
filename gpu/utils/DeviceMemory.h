@@ -9,4 +9,11 @@
 #include <cuda_runtime.h>
 #include <string>
 
+namespace faiss_v { namespace gpu {
+
 class DeviceMemory;
+
+class DeviceMemoryReservation {
+
+};
+}}

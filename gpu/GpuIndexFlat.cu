@@ -5,7 +5,9 @@
 */
 
 #include "GpuIndexFlat.h"
+#include "../IndexFlat.h"
 #include "utils/DeviceUtils.h"
+#include "impl/FlatIndex.cuh"
 
 namespace faiss_v { namespace gpu {
 
@@ -17,8 +19,8 @@ constexpr size_t kMinPageSize = (size_t) 256 * 1024 * 1024;
 constexpr size_t kNonPinnedPageSize = (size_t) 256 * 1024 * 1024;
 
 GpuIndexFlat::GpuIndexFlat(GpuResources* resources,
-                           const IndexFlat *index,
-                           GpuIndexConfig config) :
+                           const faiss_v::IndexFlat *index,
+                           GpuIndexFlatConfig config) :
         GpuIndex(resources, index->d, index->metric_type, config),
         minPagedSize_(kMinPageSize),
         config_(config),
@@ -35,7 +37,7 @@ GpuIndexFlat::GpuIndexFlat(GpuResources *resources,
                            int dims,
                            MetricType metric,
                            GpuIndexFlatConfig config) :
-        GpuIndex(resources, index->d, index->metric_type, config),
+        GpuIndex(resources, dims, metric, config),
         minPagedSize_(kMinPageSize),
         config_(config),
         data_(nullptr) {
@@ -55,6 +57,9 @@ GpuIndexFlat::GpuIndexFlat(GpuResources *resources,
                           memorySpace_);
 }
 
+GpuIndexFlat::~GpuIndexFlat() {
+    delete data_;
+}
 
 
 }}

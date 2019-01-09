@@ -44,7 +44,7 @@ public:
     /// Construct from a pre-existing faiss::IndexFlat instance, copying data
     GpuIndexFlat(GpuResources* resources,
                  const IndexFlat* index,
-                 GpuIndexConfig config = GpuIndexFlatConfig());
+                 GpuIndexFlatConfig config = GpuIndexFlatConfig());
 
     /// Construct an empty instance
     GpuIndexFlat(GpuResources* resources,
