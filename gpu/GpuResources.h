@@ -29,6 +29,12 @@ public:
 
     /// Returns the stream that we order all computation on for the given device
     virtual cudaStream_t getDefaultStream(int device) = 0;
+
+    /// Returns the temporary memory manager for the given device
+    virtual DeviceMemory& getMemoryManager(int device) = 0;
+
+    /// Calls getMemoryManager for the current device
+    DeviceMemory& getMemoryManagerCurrentDevice();
 };
 
 } }

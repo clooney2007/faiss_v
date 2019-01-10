@@ -10,6 +10,8 @@
 #include "utils/Float16.cuh"
 #include "impl/FlatIndex.cuh"
 
+#include <limits>
+
 namespace faiss_v { namespace gpu {
 
 /// Default CPU search size for which we use paged copies
@@ -60,6 +62,36 @@ GpuIndexFlat::GpuIndexFlat(GpuResources *resources,
 
 GpuIndexFlat::~GpuIndexFlat() {
     delete data_;
+}
+
+void
+GpuIndexFlat::copyFrom(const IndexFlat *index) {
+    DeviceScope scope(device_);
+
+    this->d = index->d;
+    this->metric_type = index->metric_type;
+
+    // GPU code has 32 bit indices
+    FAISSV_THROW_IF_NOT_FMT(index->ntotal <= (Index::idx_t) std::numeric_limits<int>::max(),
+                            "GPU index only supports up to %zu indices; "
+                                "attempting to copy CPU index with %zu parameters",
+                            (size_t) std::numeric_limits<int>::max(),
+                            (size_t) index->ntotal);
+    this->ntotal = index->ntotal;
+
+    delete data_;
+    data_ = new FlatIndex(resources_,
+                          this->d,
+                          index->metric_type == faiss_v::METRIC_L2,
+                          config_.useFlat16,
+                          config_.useFloat16Accumulator,
+                          config_.storeTransposed,
+                          memorySpace_);
+
+    // The index could be empty
+    if(index->ntotal > 0) {
+        data_->
+    }
 }
 
 void

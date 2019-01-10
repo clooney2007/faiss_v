@@ -28,6 +28,18 @@ public:
     /// Destructor
     __host__ ~DeviceTensor();
 
+    /// Move constructor
+    __host__ DeviceTensor(DeviceTensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
+
+    /// Constructs a tensor of the given size and stride, referencing a
+    /// memory region we do not own
+    __host__ DeviceTensor(DataPtrType data,
+                          const IndexT sizes[Dim],
+                          MemorySpace space = MemorySpace::Device);
+    __host__ DeviceTensor(DataPtrType data,
+                          std::initializer_list<IndexT> sizes,
+                          MemorySpace space = MemorySpace::Device);
+
 private:
     enum AllocState {
         /// Tensor itself owns the memory, which must be freed via cudaFree

@@ -31,6 +31,10 @@ bool getFullUnifiedMemSupport(int device);
 /// Equivalent to getFullUnifiedMemSupport(getCurrentDevice())
 bool getFullUnifiedMemSupportCurrentDevice();
 
+/// For a given pointer, returns whether or not it is located on
+/// a device (deviceId >= 0) or the host (-1).
+int getDeviceForAddress(const void* p);
+
 /// Resource Acquisition Is Initialization object to set the current device,
 /// and restore the previous device upon destruction
 class DeviceScope {

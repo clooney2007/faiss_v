@@ -122,6 +122,24 @@ public:
     template <typename U>
     __host__ __device__ const Tensor<U, Dim, InnerContig, IndexT, PtrTraits> cast() const;
 
+    /// Returns a raw pointer to the start of our data.
+    __host__ __device__ inline DataPtrType data() {
+        return data_;
+    }
+
+    /// Returns the total number of elements contained within our data (product of `getSize(i)`)
+    __host__ __device__ size_t numElements() const;
+
+    /// If we are contiguous, returns the total size in bytes of our data
+    __host__ __device__ size_t getSizeInBytes() const {
+        return numElements() * sizeof(T);
+    }
+
+    /// Returns the size array.
+    __host__ __device__ inline const IndexT* sizes() const {
+        return size_;
+    }
+
 protected:
     /// Raw pointer to where the tensor data begins
     DataPtrType data_;
