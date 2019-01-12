@@ -90,15 +90,54 @@ GpuIndexFlat::copyFrom(const IndexFlat *index) {
 
     // The index could be empty
     if(index->ntotal > 0) {
-        data_->
+        data_->add(index->xb.data(), index->ntotal, resources_->getDefaultStream(device_));
     }
+}
+
+void
+GpuIndexFlat::add(Index::idx_t n, const float *x) {
+    DeviceScope scope(device_);
+
+    // To avoid multiple re-allocations, ensure we have enough storage avaliable
+    data_->reserve(n, resources_->getDefaultStream(device_));
+
+    if (!config_.useFlat16) {
+        addImpl_(n, x, nullptr);
+    } else {
+        FAISSV_THROW_IF_NOT_MSG(false, "useFlat16 not implemented.");
+    }
+}
+
+void
+GpuIndexFlat::addImpl_(Index::idx_t n, const float *x, const Index::idx_t* ids) {
+    FAISSV_THROW_IF_NOT_MSG(!ids, "add_with_ids not supported");
+    FAISSV_THROW_IF_NOT(n > 0);
+
+    // Due to GPU indexing in int32, limit the number of bectors
+    FAISSV_THROW_IF_NOT_FMT(this->ntotal + n <= (Index::idx_t) std::numeric_limits<int>::max(),
+                            "GPU index only supports up to %zu indices; "
+                                "attempting to copy CPU index with %zu parameters",
+                            (size_t) std::numeric_limits<int>::max(),
+                            (size_t) this->ntotal + n);
+    data_->add(x, n, resources_->getDefaultStream(device_));
+    this->ntotal += n;
+}
+
+
+void
+GpuIndexFlat::reset() {
+    DeviceScope scope(device_);
+
+    // Free the underlying memory
+    data_->reset();
+    this->ntotal = 0;
 }
 
 void
 GpuIndexFlat::verifySettings_() const {
     // Ensure Hgemm is supported on this device
     if(config_.useFloat16Accumulator) {
-#define FAISS_USE_FLOAT16
+#ifdef FAISS_USE_FLOAT16
         FAISSV_THROW_IF_NOT_MSG(config_.useFlat16,
                                 "useFloat16Accumulator can only be enabled "
                                     "with useFloat16");
@@ -106,10 +145,10 @@ GpuIndexFlat::verifySettings_() const {
                                 "Device %d does not support Hgemm "
                                     "(useFloat16Accumulator)",
                                 config_.device);
-    }
 #else
-    FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
+        FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
 #endif
+    }
 }
 
 }}

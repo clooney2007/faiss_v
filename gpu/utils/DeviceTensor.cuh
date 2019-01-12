@@ -31,6 +31,13 @@ public:
     /// Move constructor
     __host__ DeviceTensor(DeviceTensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
 
+    /// Constructs a tensor of the given size, allocating memory for it
+    /// locally
+    __host__ DeviceTensor(const IndexT sizes[Dim],
+                          MemorySpace space = MemorySpace::Device);
+    __host__ DeviceTensor(std::initializer_list<IndexT> sizes,
+                          MemorySpace space = MemorySpace::Device);
+
     /// Constructs a tensor of the given size and stride, referencing a
     /// memory region we do not own
     __host__ DeviceTensor(DataPtrType data,

@@ -25,8 +25,14 @@ public:
               bool useFloat16Accumulator,
               bool storeTransposed, MemorySpace space);
 
+    /// Reserve storage that can contain at least this many vectors
+    void reserve(size_t numVecs, cudaStream_t stream);
+
     /// Add vectors to ourselves from host or the device
     void add(const float* data, int numVecs, cudaStream_t stream);
+
+    /// Free all storage
+    void reset();
 
 private:
     /// Collection of GPU resources used
@@ -45,7 +51,7 @@ private:
     const bool storeTransposed_;
 
     /// L2 or inner product distance
-    bool L2Distance_;
+    bool l2Distance_;
 
     /// Memory space for allocations
     MemorySpace space_;

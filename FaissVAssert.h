@@ -11,9 +11,9 @@
 
 /// Assertions
 
-#define FAISSV_ASSERT(X)                                                            \
+#define FAISSV_ASSERT(X)                                                           \
   do {                                                                             \
-    if (!(X)) {                                                                   \
+    if (!(X)) {                                                                    \
       fprintf(stderr, "Faiss assertion '%s' failed in %s "                         \
                "at %s:%d\n",                                                       \
                #X, __PRETTY_FUNCTION__, __FILE__, __LINE__);                       \
@@ -22,9 +22,9 @@
   } while (false)
 
 
-#define FAISSV_ASSERT_MSG(X, MSG)                                                   \
+#define FAISSV_ASSERT_MSG(X, MSG)                                                  \
   do {                                                                             \
-    if (!(X)) {                                                                   \
+    if (!(X)) {                                                                    \
       fprintf(stderr, "Faiss assertion '%s' failed in %s "                         \
                "at %s:%d; details: " MSG "\n",                                     \
                #X, __PRETTY_FUNCTION__, __FILE__, __LINE__);                       \
@@ -32,7 +32,7 @@
     }                                                                              \
   } while (false)
 
-#define FAISSV_ASSERT_FMT(X, FMT, ...)                                             \
+#define FAISSV_ASSERT_FMT(X, FMT, ...)                                            \
   do {                                                                            \
     if (!(X)) {                                                                   \
       fprintf(stderr, "Faiss assertion '%s' failed in %s "                        \
@@ -50,28 +50,35 @@ do {                                                                            
   abort();                                                                        \
 } while (false)
 
-#define FAISSV_THROW_FMT(FMT, ...)                                                 \
+#define FAISSV_THROW_FMT(FMT, ...)                                                \
   do {                                                                            \
     std::string __s;                                                              \
     int __size = snprintf(nullptr, 0, FMT, __VA_ARGS__);                          \
     __s.resize(__size + 1);                                                       \
     snprintf(&__s[0], __s.size(), FMT, __VA_ARGS__);                              \
-    throw faiss_v::FaissVException(__s, __PRETTY_FUNCTION__, __FILE__, __LINE__);    \
+    throw faiss_v::FaissVException(__s, __PRETTY_FUNCTION__, __FILE__, __LINE__); \
   } while (false)
 
 /// Exceptions thrown upon a conditional failure
 
-#define FAISSV_THROW_IF_NOT_MSG(X, MSG)                                            \
+#define FAISSV_THROW_IF_NOT(X)                                                    \
   do {                                                                            \
     if (!(X)) {                                                                   \
-      FAISSV_THROW_FMT("Error: '%s' failed: " MSG, #X);                            \
+      FAISSV_THROW_FMT("Error: '%s' failed", #X);                                 \
     }                                                                             \
   } while (false)
 
-#define FAISSV_THROW_IF_NOT_FMT(X, FMT, ...)                                       \
+#define FAISSV_THROW_IF_NOT_MSG(X, MSG)                                           \
   do {                                                                            \
     if (!(X)) {                                                                   \
-      FAISSV_THROW_FMT("Error: '%s' failed: " FMT, #X, __VA_ARGS__);               \
+      FAISSV_THROW_FMT("Error: '%s' failed: " MSG, #X);                           \
+    }                                                                             \
+  } while (false)
+
+#define FAISSV_THROW_IF_NOT_FMT(X, FMT, ...)                                      \
+  do {                                                                            \
+    if (!(X)) {                                                                   \
+      FAISSV_THROW_FMT("Error: '%s' failed: " FMT, #X, __VA_ARGS__);              \
     }                                                                             \
   } while (false)
 
