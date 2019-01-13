@@ -12,7 +12,12 @@
 namespace faiss_v { namespace gpu { namespace utils {
 
 template <typename T>
-constexpr __host__ __device__ bool isPowderOf2(T v) {
+constexpr __host__ __device__ int log2(T n, int p = 0) {
+    return (n <= 1) ? p : log2(n / 2, p + 1);
+}
+
+template <typename T>
+constexpr __host__ __device__ bool isPowerOf2(T v) {
     return (v && !(v & (v - 1)));
 }
 

@@ -34,7 +34,7 @@ public:
     virtual DeviceMemory& getMemoryManager(int device) = 0;
 
     /// Calls getMemoryManager for the current device
-    DeviceMemory& getMemoryManagerCurrentDevice();
+    virtual DeviceMemory& getMemoryManagerCurrentDevice() = 0;
 };
 
 } }

@@ -31,11 +31,28 @@ public:
     /// Move constructor
     __host__ DeviceTensor(DeviceTensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
 
+    /// Move assignment
+    __host__ DeviceTensor<T, Dim, InnerContig, IndexT, PtrTraits>&
+    operator=(DeviceTensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
+
     /// Constructs a tensor of the given size, allocating memory for it
     /// locally
     __host__ DeviceTensor(const IndexT sizes[Dim],
                           MemorySpace space = MemorySpace::Device);
     __host__ DeviceTensor(std::initializer_list<IndexT> sizes,
+                          MemorySpace space = MemorySpace::Device);
+
+    /// Constructs a tensor of the given size, reserving a temporary
+    /// memory reservation via a memory manager.
+    /// The memory reservation should be ordered with respect to the
+    /// given stream.
+    __host__ DeviceTensor(DeviceMemory& m,
+                          const IndexT sizes[Dim],
+                          cudaStream_t stream,
+                          MemorySpace space = MemorySpace::Device);
+    __host__ DeviceTensor(DeviceMemory& m,
+                          std::initializer_list<IndexT> sizes,
+                          cudaStream_t stream,
                           MemorySpace space = MemorySpace::Device);
 
     /// Constructs a tensor of the given size and stride, referencing a
@@ -45,6 +62,13 @@ public:
                           MemorySpace space = MemorySpace::Device);
     __host__ DeviceTensor(DataPtrType data,
                           std::initializer_list<IndexT> sizes,
+                          MemorySpace space = MemorySpace::Device);
+
+    /// Copies a tensor into ourselves, reserving a temporary
+    /// memory reservation via a memory manager.
+    __host__ DeviceTensor(DeviceMemory& m,
+                          Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t,
+                          cudaStream_t stream,
                           MemorySpace space = MemorySpace::Device);
 
 private:

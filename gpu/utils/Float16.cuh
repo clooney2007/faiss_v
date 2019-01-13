@@ -14,10 +14,9 @@
 #if CUDA_VERSION >= 7500
 #define FAISSV_USE_FLOAT16 1
 
-if __CUDA_ARCH__ >= 530
+#if __CUDA_ARCH__ >= 530
 #define FAISSV_USE_FULL_FLOAT16 1
 #endif
-
 #endif
 
 #ifdef FAISSV_USE_FLOAT16

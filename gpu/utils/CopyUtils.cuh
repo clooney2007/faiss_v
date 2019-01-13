@@ -30,7 +30,7 @@ DeviceTensor<T, Dim, true> toDevice(GpuResources* resources,
 
         Tensor<T, Dim, true> oldT(src, sizes);
         if (resources) {
-            DeviceTensor<T, Dim, true> newT(resources->getMemoryManager(), sizes, stream);
+            DeviceTensor<T, Dim, true> newT(resources->getMemoryManager(dstDevice), sizes, stream);
             newT.copyFrom(oldT, stream);
 
             return newT;

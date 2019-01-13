@@ -74,7 +74,7 @@ public:
     typedef IndexT IndexType;
     enum { IsInnerContig = InnerContig};
     typedef typename PtrTraits<T>::PtrType DataPtrType;
-    typedef Tensor<T, DIm, InnerContig, IndexT, PtrTraits> TensorType;
+    typedef Tensor<T, Dim, InnerContig, IndexT, PtrTraits> TensorType;
 
     /// Default constructor
     __host__ __device__ Tensor();
