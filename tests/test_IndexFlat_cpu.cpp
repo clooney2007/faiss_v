@@ -10,8 +10,8 @@
 #include <chrono>
 
 #include <gtest/gtest.h>
-#include <faiss_v/Index.h>
-#include <faiss_v/IndexFlat.h>
+#include "../Index.h"
+#include "../IndexFlat.h"
 
 namespace {
 typedef faiss_v::Index::idx_t idx_t;
@@ -62,7 +62,7 @@ TEST(INDEXFLATTEST, INDEXFLAT) {
 //      printf("Q: %d, Top: %d, idx: %d, dis: %f\n", j, i, refI[i + j * k], refD[i + j * k]);
 //    }
 //  }
-  printf("Index num: %ld\n", cd.index.xb.size());
+  printf("Index num: %ld\n", cd.index.xb.size() / cd.index.d);
 }
 
 }

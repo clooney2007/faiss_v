@@ -42,6 +42,9 @@ struct GpuIndexFlatConfig : public GpuIndexConfig {
 class GpuIndexFlat : public GpuIndex {
 public:
     /// Construct from a pre-existing faiss::IndexFlat instance, copying data
+    GpuIndexFlat();
+
+    /// Construct from a pre-existing faiss::IndexFlat instance, copying data
     GpuIndexFlat(GpuResources* resources,
                  const IndexFlat* index,
                  GpuIndexFlatConfig config = GpuIndexFlatConfig());

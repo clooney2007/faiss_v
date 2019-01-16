@@ -34,15 +34,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # specify header and cpp files
-file(GLOB faiss_cpu_headers ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-file(GLOB faiss_cpu_cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-list(REMOVE_ITEM faiss_cpu_cpp  ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-message(${faiss_cpu_cpp})
+file(GLOB faissv_cpu_headers ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+file(GLOB faissv_cpu_cpp ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+list(REMOVE_ITEM faissv_cpu_cpp  ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
-set(faiss_lib faiss_v)
-#add_executable(${faiss_lib} ${faiss_cpu_headers} ${faiss_cpu_cpp})
-add_library(${faiss_lib} STATIC ${faiss_cpu_headers} ${faiss_cpu_cpp})
-target_link_libraries(${faiss_lib} ${OpenMP_CXX_FLAGS} ${BLAS_LIB})
+set(faissv_lib faiss_v)
+add_library(${faissv_lib} STATIC ${faissv_cpu_headers} ${faissv_cpu_cpp})
+target_link_libraries(${faissv_lib} ${OpenMP_CXX_FLAGS} ${BLAS_LIB})
 
 # build gpu lib
 if(BUILD_WITH_GPU)
@@ -54,9 +52,11 @@ endif(BUILD_WITH_GPU)
 if(BUILD_TEST)
     add_subdirectory(tests)
 endif(BUILD_TEST)
+
 # Install libraries
-install(TARGETS ${faiss_lib}
+install(TARGETS ${faissv_lib}
     ARCHIVE DESTINATION lib
 )
-install(FILES ${faiss_cpu_headers} DESTINATION include/faiss_v)
+
+install(FILES ${faissv_cpu_headers} DESTINATION include/faiss_v)
 
