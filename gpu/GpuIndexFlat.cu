@@ -7,8 +7,8 @@
 #include "GpuIndexFlat.h"
 #include "../IndexFlat.h"
 #include "utils/DeviceUtils.h"
-#include "utils/Float16.cuh"
 #include "impl/FlatIndex.cuh"
+#include "GpuResources.h"
 
 #include <limits>
 

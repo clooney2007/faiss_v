@@ -7,6 +7,8 @@
 #pragma once
 
 #include "DeviceTensor.cuh"
+#include "DeviceUtils.h"
+#include "../GpuResources.h"
 
 namespace faiss_v { namespace gpu {
 

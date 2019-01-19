@@ -20,21 +20,17 @@ class GpuResources {
 public:
     virtual ~GpuResources();
 
-    /// Call to pre-allocate resources for a particular device. If theis is not called,
-    /// then resources will be allocated at the first time of demand
+    /// Call to pre-allocate resources for a particular device. If this is
+    /// not called, then resources will be allocated at the first time
+    /// of demand
     virtual void initializeForDevice(int device) = 0;
 
-    /// Returns the cuBLAS handle that we use for the given device
-    virtual cublasHandle_t getBlasHandle(int device) = 0;
-
-    /// Returns the stream that we order all computation on for the given device
+    /// Returns the stream that we order all computation on for the
+    /// given device
     virtual cudaStream_t getDefaultStream(int device) = 0;
 
     /// Returns the temporary memory manager for the given device
     virtual DeviceMemory& getMemoryManager(int device) = 0;
-
-    /// Calls getMemoryManager for the current device
-    virtual DeviceMemory& getMemoryManagerCurrentDevice() = 0;
 };
 
 } }

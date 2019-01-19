@@ -5,9 +5,7 @@
 */
 
 #include "FlatIndex.cuh"
-#include "../utils/Float16.cuh"
 #include "../utils/CopyUtils.cuh"
-#include "../utils/DeviceUtils.h"
 
 namespace faiss_v { namespace gpu {
 

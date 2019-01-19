@@ -19,6 +19,9 @@ int getCurrentDevice();
 /// Sets the current thread-local GPU device
 void setCurrentDevice(int device);
 
+/// Returns the number of available GPU devices
+int getNumDevices();
+
 /// Returns a cached cudaDeviceProp for the given device
 const cudaDeviceProp& getDeviceProperties(int device);
 

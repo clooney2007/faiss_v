@@ -7,6 +7,8 @@ file(GLOB_RECURSE faissv_gpu_cu ${CMAKE_CURRENT_SOURCE_DIR}/*.cu)
 set(faissv_lib_gpu gpufaiss_v)
 
 list(REMOVE_ITEM faissv_gpu_cpp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_GpuIndexFlat_gpu.cpp)
+list(REMOVE_ITEM faissv_gpu_cuh ${CMAKE_CURRENT_SOURCE_DIR}/utils/Float16.cuh)
+list(REMOVE_ITEM faissv_gpu_cu ${CMAKE_CURRENT_SOURCE_DIR}/utils/Float16.cu)
 
 cuda_add_library(${faissv_lib_gpu} STATIC ${faissv_gpu_headers} ${faissv_gpu_cpp} ${faissv_gpu_cuh} ${faissv_gpu_cu})
 

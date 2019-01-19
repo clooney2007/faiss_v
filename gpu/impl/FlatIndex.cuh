@@ -8,7 +8,6 @@
 
 #include "../utils/DeviceTensor.cuh"
 #include "../utils/DeviceVector.cuh"
-#include "../utils/Float16.cuh"
 #include "../utils/MemorySpace.h"
 
 namespace faiss_v { namespace gpu {
