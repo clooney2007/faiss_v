@@ -7,7 +7,6 @@
 #pragma once
 
 #include "DeviceTensor.cuh"
-#include "DeviceUtils.h"
 #include "../GpuResources.h"
 
 namespace faiss_v { namespace gpu {
@@ -32,7 +31,9 @@ DeviceTensor<T, Dim, true> toDevice(GpuResources* resources,
 
         Tensor<T, Dim, true> oldT(src, sizes);
         if (resources) {
-            DeviceTensor<T, Dim, true> newT(resources->getMemoryManager(dstDevice), sizes, stream);
+            DeviceTensor<T, Dim, true> newT(resources->getMemoryManager(dstDevice),
+                                            sizes,
+                                            stream);
             newT.copyFrom(oldT, stream);
 
             return newT;

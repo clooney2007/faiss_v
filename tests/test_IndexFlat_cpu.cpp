@@ -26,7 +26,7 @@ typedef faiss_v::Index::idx_t idx_t;
 
 struct CommonData {
 
-  std::vector <float> database;
+  std::vector<float> database;
   std::vector <float> queries;
   faiss_v::IndexFlatL2 index;
 

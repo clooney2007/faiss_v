@@ -9,6 +9,7 @@
 #include "Tensor.cuh"
 #include "DeviceMemory.h"
 #include "MemorySpace.h"
+#include "DeviceUtils.h"
 
 namespace faiss_v { namespace gpu {
 
@@ -64,13 +65,6 @@ public:
                           std::initializer_list<IndexT> sizes,
                           MemorySpace space = MemorySpace::Device);
 
-    /// Copies a tensor into ourselves, reserving a temporary
-    /// memory reservation via a memory manager.
-    __host__ DeviceTensor(DeviceMemory& m,
-                          Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t,
-                          cudaStream_t stream,
-                          MemorySpace space = MemorySpace::Device);
-
 private:
     enum AllocState {
         /// Tensor itself owns the memory, which must be freed via cudaFree
@@ -88,3 +82,5 @@ private:
 };
 
 }}
+
+#include "DeviceTensor-inl.cuh"

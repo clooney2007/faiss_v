@@ -9,6 +9,7 @@
 #include "utils/DeviceUtils.h"
 #include "impl/FlatIndex.cuh"
 #include "GpuResources.h"
+#include "utils/CopyUtils.cuh"
 
 #include <limits>
 
@@ -123,6 +124,47 @@ GpuIndexFlat::addImpl_(Index::idx_t n, const float *x, const Index::idx_t* ids) 
     this->ntotal += n;
 }
 
+void
+GpuIndexFlat::search(Index::idx_t n,
+                     const float *x,
+                     Index::idx_t k,
+                     float *distances,
+                     Index::idx_t *labels) const {
+    if (n == 0) {
+        return;
+    }
+
+    // only support <= max int results
+    FAISSV_THROW_IF_NOT_FMT(
+        n <= (faiss_v::Index::idx_t) std::numeric_limits<int>::max(),
+                            "GPU index only supports up to %zu indices",
+                            (size_t)std::numeric_limits<int>::max());
+    FAISSV_THROW_IF_NOT_FMT(k <= 1024,
+                            "GPU only supports k <= 1024 (requested %d)",
+                            (int) k);
+
+    DeviceScope scope(device_);
+    auto stream = resources_->getDefaultStream(device_);
+
+    auto outDistances = toDevice<float, 2>(resources_,
+                                           device_,
+                                           distances,
+                                           stream,
+                                           {(int)n, (int) k});
+
+    // only supports an interface returning int indices
+    DeviceTensor<int, 2, true> outIntIndices(
+        resources_->getMemoryManagerCurrentDevice(), {(int) n, (int) k}, stream);
+}
+
+void
+GpuIndexFlat::searchImpl_(idx_t n,
+                          const float* x,
+                          idx_t k,
+                          float* distances,
+                          idx_t* labels) const {
+    FAISSV_ASSERT_MSG(false, "Should not be called");
+}
 
 void
 GpuIndexFlat::reset() {
@@ -137,7 +179,7 @@ void
 GpuIndexFlat::verifySettings_() const {
     // Ensure Hgemm is supported on this device
     if(config_.useFloat16Accumulator) {
-#ifdef FAISS_USE_FLOAT16
+#ifdef FAISSV_USE_FLOAT16
         FAISSV_THROW_IF_NOT_MSG(config_.useFlat16,
                                 "useFloat16Accumulator can only be enabled "
                                     "with useFloat16");
@@ -149,6 +191,22 @@ GpuIndexFlat::verifySettings_() const {
         FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
 #endif
     }
+}
+
+//
+// GpuIndexFlatL2
+//
+
+GpuIndexFlatL2::GpuIndexFlatL2(GpuResources* resources,
+                               faiss_v::IndexFlatL2* index,
+                               GpuIndexFlatConfig config) :
+    GpuIndexFlat(resources, index, config) {
+}
+
+GpuIndexFlatL2::GpuIndexFlatL2(GpuResources* resources,
+                               int dims,
+                               GpuIndexFlatConfig config) :
+    GpuIndexFlat(resources, dims, faiss_v::METRIC_L2, config) {
 }
 
 }}

@@ -99,19 +99,6 @@ protected:
                      float* distances,
                      Index::idx_t* labels) const override ;
 
-    /// Called from search when the input data is on the CPU
-    void searchFromCpuPaged_(int n,
-                             const float* x,
-                             int k,
-                             float* outDIstancesData,
-                             int* outIndicesData) const;
-
-    void searchNonPaged_(int n,
-                         const float* x,
-                         int k,
-                         float* outDistancesData,
-                         int* outIndicesData) const;
-
 private:
     /// Checks user settings for consitency
     void verifySettings_() const;
@@ -125,6 +112,23 @@ protected:
 
     /// Holds GPU data in list of vectors
     FlatIndex* data_;
+};
+
+/// Wrapper around the GPU implementation that looks like
+/// faiss::IndexFlatL2; copies over centroid data from a given
+/// faiss::IndexFlat
+class GpuIndexFlatL2 : public GpuIndexFlat {
+public:
+    /// Construct from a pre-existing faiss::IndexFlatL2 instance, copying
+    /// data over to the given GPU
+    GpuIndexFlatL2(GpuResources* resources,
+                   faiss_v::IndexFlatL2* index,
+                   GpuIndexFlatConfig config = GpuIndexFlatConfig());
+
+    /// Construct an empty instance that can be added to
+    GpuIndexFlatL2(GpuResources* resources,
+                   int dims,
+                   GpuIndexFlatConfig config = GpuIndexFlatConfig());
 };
 
 }}

@@ -42,18 +42,19 @@ struct TestFlatOptions {
 
 // parameters to use for the test
 int d = 64;
-size_t nb = 1000000;
+size_t nb = 1000;
 size_t nq = 100;
 int k = 10;
 
 typedef faiss_v::Index::idx_t idx_t;
 
 struct CommonData {
-    std::vector <float> database;
+    std::vector<float> database;
     std::vector <float> queries;
-    faiss_v::gpu::GpuIndexFlat index;
+    faiss_v::gpu::GpuIndexFlatL2* gpu_index;
     int numVecs;
     int dim;
+    int device = 0;
     int numQuery;
 
     CommonData(const TestFlatOptions& opt) {
@@ -62,26 +63,27 @@ struct CommonData {
         dim = randVal(50, 800);
         numQuery = opt.numQueriesOverride > 0 ? opt.numQueriesOverride : randVal(1, 512);
 
+        faiss_v::gpu::GpuIndexFlatConfig config;
+        config.device = device;
+        config.storeTransposed = opt.useTransposed;
+        config.useFlat16 = opt.useFloat16;
+
         int device = 0;
         faiss_v::gpu::StandardGpuResources res;
         res.noTempMemory();
-        index = new faiss_v::gpu::GpuIndexFlat(&res, dim, config);
+        gpu_index = new faiss_v::gpu::GpuIndexFlatL2(&res, dim, config);
 
-        faiss_v::gpu::GpuIndexFlatConfig config;
-        config.device = device;
-        config.useFloat16 = opt.useFloat16;
-        config.storeTransposed = opt.useTransposed;
-
-        faiss_v::IndexFlatL2 index(dim);
-        database = new std::vector<float>(numVecs * dim);
+        std::cout << "here" << std::endl;
+        database.resize(numVecs * dim);
         for (size_t i = 0; i < numVecs * dim; i++) {
             database[i] = drand48();
         }
-        queries = new std::vector<float>(numVecs * dim);
+        queries.resize(numVecs * dim);
         for (size_t i = 0; i < numVecs * dim; i++) {
             queries[i] = drand48();
         }
-        gpuIndex->add(numVecs, database.data());
+        std::cout << "here" << std::endl;
+        gpu_index->add(numVecs, database.data());
     }
 };
 
@@ -95,7 +97,7 @@ TEST(INDEXFLATTEST, INDEXFLAT) {
     std::vector<idx_t> refI(k * nq);
     std::vector<float> refD(k * nq);
 
-    faiss_v::gpu::GpuIndexFlat index = cd.index;
+    faiss_v::gpu::GpuIndexFlatL2* index = cd.gpu_index;
     auto  startTime = std::chrono::system_clock::now();
 //  index.search(nq, cd.queries.data(), k, refD.data(), refI.data());
     auto endTime = std::chrono::system_clock::now();
@@ -109,7 +111,7 @@ TEST(INDEXFLATTEST, INDEXFLAT) {
 //      printf("Q: %d, Top: %d, idx: %d, dis: %f\n", j, i, refI[i + j * k], refD[i + j * k]);
 //    }
 //  }
-    printf("Index num: %ld\n", cd.index.xb.size());
+    printf("Index num: %ld\n", cd.gpu_index->ntotal);
 }
 
 }

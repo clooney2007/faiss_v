@@ -21,6 +21,10 @@ StandardGpuResources::StandardGpuResources() {
 
 }
 
+StandardGpuResources::~StandardGpuResources() {
+
+}
+
 void
 StandardGpuResources::noTempMemory() {
 
@@ -96,6 +100,19 @@ StandardGpuResources::initializeForDevice(int device) {
     memory_.emplace(device,
                     std::unique_ptr<StackDeviceMemory>(
                         new StackDeviceMemory(device, toAlloc)));
+}
+
+cudaStream_t
+StandardGpuResources::getDefaultStream(int device) {
+    initializeForDevice(device);
+
+    return defaultStreams_[device];
+}
+
+DeviceMemory& StandardGpuResources::getMemoryManager(int device) {
+    initializeForDevice(device);
+
+    return *memory_[device];
 }
 
 }}

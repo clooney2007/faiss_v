@@ -79,16 +79,6 @@ public:
     /// Default constructor
     __host__ __device__ Tensor();
 
-    /// Copy constructor
-    __host__ __device__ Tensor(Tensor<T, Dim, InnerContig, IndexT, PtrTraits> &t);
-
-    /// Move constructor
-    __host__ __device__ Tensor(Tensor<T, Dim, InnerContig, IndexT, PtrTraits> &&t);
-
-    /// Assignment
-    __host__ __device__ Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&
-    operator=(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t);
-
     /// Move Assignment
     __host__ __device__ Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&
     operator=(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
@@ -97,40 +87,32 @@ public:
     __host__ __device__ Tensor(DataPtrType data, const IndexT sizes[Dim]);
     __host__ __device__ Tensor(DataPtrType data, std::initializer_list<IndexT> sizes);
 
-    /// Constructor that takes arbitrary size/stride arrays.
-    __host__ __device__ Tensor(DataPtrType data, const IndexT sizes[Dim], const IndexT strides[Dim]);
-
-    /// Copies a tensor into ourselves;
-    __host__ void copyFrom(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t, cudaStream_t stream);
-
-    /// Copies ourselves into a tensor;
-    __host__ void copyTo(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t, cudaStream_t stream);
-
-    /// Returns true if the two tensors are of the same dimensionality
-    template <typename OtherT, int OtherDim>
-    __host__ __device__ bool isSame(const Tensor<OtherT, OtherDim, InnerContig, IndexT, PtrTraits>& rhs) const;
-
-    /// Returns true if the two tensors are of the same dimensionality
-    template <typename OtherT, int OtherDim>
-    __host__ __device__ bool isSameSize(const Tensor<OtherT, OtherDim, InnerContig, IndexT, PtrTraits>& rhs) const;
-
-    /// Cast to a tensor of a different type of the same size
-    template <typename U>
-    __host__ __device__ Tensor<U, Dim, InnerContig, IndexT, PtrTraits> cast();
-
-    /// Const version of 'cast'
-    template <typename U>
-    __host__ __device__ const Tensor<U, Dim, InnerContig, IndexT, PtrTraits> cast() const;
+    /// Copies a tensor into ourselves; sizes must match
+    __host__ void copyFrom(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t,
+                           cudaStream_t stream);
 
     /// Returns a raw pointer to the start of our data.
     __host__ __device__ inline DataPtrType data() {
         return data_;
     }
 
+    /// Returns the size of a given dimension, `[0, Dim - 1]`. No bounds
+    /// checking.
+    __host__ __device__ inline IndexT getSize(int i) const {
+        return size_[i];
+    }
+
+    /// Returns the stride of a given dimension, `[0, Dim - 1]`. No bounds
+    /// checking.
+    __host__ __device__ inline IndexT getStride(int i) const {
+        return stride_[i];
+    }
+
     /// Returns the total number of elements contained within our data (product of `getSize(i)`)
     __host__ __device__ size_t numElements() const;
 
-    /// If we are contiguous, returns the total size in bytes of our data
+    /// If we are contiguous, returns the total size in bytes of our
+    /// data
     __host__ __device__ size_t getSizeInBytes() const {
         return numElements() * sizeof(T);
     }
@@ -139,6 +121,13 @@ public:
     __host__ __device__ inline const IndexT* sizes() const {
         return size_;
     }
+
+    /// Returns true if there is no padding within the tensor and no
+    /// re-ordering of the dimensions.
+    /// ~~~
+    /// (stride(i) == size(i + 1) * stride(i + 1)) && stride(dim - 1) == 0
+    /// ~~~
+    __host__ __device__ bool isContiguous() const;
 
 protected:
     /// Raw pointer to where the tensor data begins
@@ -152,3 +141,5 @@ protected:
 };
 
 }}
+
+#include "Tensor-inl.cuh"

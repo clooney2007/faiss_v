@@ -7,8 +7,8 @@
 #pragma once
 
 #include "GpuResources.h"
-#include "utils/DeviceUtils.h"
 #include "utils/StackDeviceMemory.h"
+#include "utils/DeviceUtils.h"
 #include <unordered_map>
 #include <vector>
 
@@ -28,6 +28,9 @@ public:
     /// Internal system calls
     void initializeForDevice(int device) override;
 
+    cudaStream_t getDefaultStream(int device) override;
+
+    DeviceMemory& getMemoryManager(int device) override;
 private:
     /// Our default stream that work is ordered on, one per each device
     std::unordered_map<int, cudaStream_t> defaultStreams_;

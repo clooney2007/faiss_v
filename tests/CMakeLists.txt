@@ -15,6 +15,5 @@ foreach(source ${srcs})
     target_link_libraries(${name} ${faissv_lib} ${BLAS_LIB} ${GTEST_BOTH_LIBRARIES})
 
     # Install
-    message(${CMAKE_INSTALL_PREFIX})
     install(TARGETS ${name} DESTINATION test)
 endforeach(source)

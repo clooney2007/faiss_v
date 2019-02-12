@@ -12,7 +12,7 @@ foreach(source ${srcs})
 
     # target
     add_executable(${name} ${source})
-    target_link_libraries(${name} ${faissv_lib_gpu} ${faissv_lib} ${BLAS_LIB} ${GTEST_BOTH_LIBRARIES})
+    target_link_libraries(${name} ${faissv_lib_gpu} ${faissv_lib} ${GTEST_BOTH_LIBRARIES} ${CUDA_LINKER_LIBS})
 
     # Install
     install(TARGETS ${name} DESTINATION test)

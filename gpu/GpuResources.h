@@ -31,7 +31,11 @@ public:
 
     /// Returns the temporary memory manager for the given device
     virtual DeviceMemory& getMemoryManager(int device) = 0;
+
+    /// Calls getMemoryManager for the current device
+    DeviceMemory& getMemoryManagerCurrentDevice();
 };
 
-} }
+
+}}
 

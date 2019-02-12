@@ -29,7 +29,7 @@ GpuIndex::GpuIndex(GpuResources *resources, int dims, MetricType metric, GpuInde
         resources_(resources),
         device_(config.device),
         memorySpace_(config.memorySpace) {
-    FAISSV_THROW_IF_NOT_FMT(device_ < getDevice(), "Invalid GPU device %d", device_);
+    FAISSV_THROW_IF_NOT_FMT(device_ < getNumDevices(), "Invalid GPU device %d", device_);
 
     FAISSV_THROW_IF_NOT_MSG(dims > 0, "Invalid number of dimensions");
 

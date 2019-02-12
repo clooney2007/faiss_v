@@ -13,4 +13,9 @@ GpuResources::~GpuResources() {
 
 }
 
+DeviceMemory&
+GpuResources::getMemoryManagerCurrentDevice() {
+    return getMemoryManager(getCurrentDevice());
+}
+
 }}

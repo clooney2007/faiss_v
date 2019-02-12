@@ -5,7 +5,6 @@ file(GLOB_RECURSE faissv_gpu_cuh ${CMAKE_CURRENT_SOURCE_DIR}/*.cuh)
 file(GLOB_RECURSE faissv_gpu_cu ${CMAKE_CURRENT_SOURCE_DIR}/*.cu)
 
 set(faissv_lib_gpu gpufaiss_v)
-
 list(REMOVE_ITEM faissv_gpu_cpp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_GpuIndexFlat_gpu.cpp)
 list(REMOVE_ITEM faissv_gpu_cuh ${CMAKE_CURRENT_SOURCE_DIR}/utils/Float16.cuh)
 list(REMOVE_ITEM faissv_gpu_cu ${CMAKE_CURRENT_SOURCE_DIR}/utils/Float16.cu)
@@ -16,9 +15,8 @@ if(BUILD_TEST)
   add_subdirectory(tests)
 endif(BUILD_TEST)
 
-#
 install(TARGETS ${faissv_lib_gpu}
     ARCHIVE DESTINATION lib
-    )
+)
 
 install(FILES ${faissv_gpu_cuh} ${faissv_gpu_headers} DESTINATION include/gpufaiss_v)

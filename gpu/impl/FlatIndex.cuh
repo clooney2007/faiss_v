@@ -66,16 +66,14 @@ private:
     DeviceTensor<float, 2, true> vectorsTransposed_;
 
 #ifdef FAISSV_USE_FLOAT16
-    DeviceTensor<half, 2, true> vectorsHalf_;
-    DeviceTensor<half, 2, true> vectorsHalfTransposed_;
+    FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
 #endif
 
     /// Precomputed L2 norms
     DeviceTensor<float, 1, true> norms_;
 
 #ifdef FAISSV_USE_FLOAT16
-    /// Precomputed L2 norms, float16 form
-    DeviceTensor<half, 1, true> normsHalf_;
+    FAISSV_THROW_IF_NOT_MSG(false, "not compiled with float16 support");
 #endif
 };
 
