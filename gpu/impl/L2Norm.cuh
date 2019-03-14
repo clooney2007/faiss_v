@@ -9,7 +9,7 @@
 
 #include "../utils/Tensor.cuh"
 
-namespace faiss_v { namespace gpu
+namespace faiss_v { namespace gpu {
 
 void runL2Norm(Tensor<float, 2, true>& input,
                Tensor<float, 1, true>& output,

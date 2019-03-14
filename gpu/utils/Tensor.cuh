@@ -79,6 +79,16 @@ public:
     /// Default constructor
     __host__ __device__ Tensor();
 
+    /// Copy constructor
+    __host__ __device__ Tensor(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t);
+
+    /// Move constructor
+    __host__ __device__ Tensor(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
+
+    /// Assignment
+    __host__ __device__ Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&
+    operator=(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t);
+
     /// Move Assignment
     __host__ __device__ Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&
     operator=(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>&& t);
@@ -87,14 +97,61 @@ public:
     __host__ __device__ Tensor(DataPtrType data, const IndexT sizes[Dim]);
     __host__ __device__ Tensor(DataPtrType data, std::initializer_list<IndexT> sizes);
 
+    /// Constructor that takes arbitrary size/stride arrays.
+    /// Errors if you attempt to pass non-contiguous strides to a
+    /// contiguous tensor.
+    __host__ __device__ Tensor(DataPtrType data,
+                               const IndexT sizes[Dim],
+                               const IndexT strides[Dim]);
+
     /// Copies a tensor into ourselves; sizes must match
     __host__ void copyFrom(Tensor<T, Dim, InnerContig, IndexT, PtrTraits>& t,
                            cudaStream_t stream);
+
+    /// Const version of `castResize`
+    template <typename U>
+    __host__ __device__ const Tensor<U, Dim, InnerContig, IndexT, PtrTraits>
+    castResize() const;
+
+    /// Cast to a tensor of a different type which is potentially a
+    /// different size than our type T. Tensor must be aligned and the
+    /// innermost dimension must be a size that is a multiple of
+    /// sizeof(U) / sizeof(T), and the stride of the innermost dimension
+    /// must be contiguous. The stride of all outer dimensions must be a
+    /// multiple of sizeof(U) / sizeof(T) as well.
+    template <typename U>
+    __host__ __device__ Tensor<U, Dim, InnerContig, IndexT, PtrTraits> castResize();
+
+    /// Returns true if we can castResize() this tensor to the new type
+    template <typename U>
+    __host__ __device__ bool canCastResize() const;
+
+    /// Attempts to cast this tensor to a tensor of a different IndexT.
+    /// Fails if size or stride entries are not representable in the new
+    /// IndexT.
+    template <typename NewIndexT>
+    __host__ Tensor<T, Dim, InnerContig, NewIndexT, PtrTraits>
+    castIndexType() const;
+
+    /// Returns true if we can use this indexing type to access all elements
+    /// index type
+    template <typename NewIndexT>
+    __host__ bool canUseIndexType() const;
 
     /// Returns a raw pointer to the start of our data.
     __host__ __device__ inline DataPtrType data() {
         return data_;
     }
+
+    /// Returns a read/write view of a portion of our tensor.
+    __host__ __device__ inline
+    detail::SubTensor<TensorType, Dim - 1, PtrTraits>
+    operator[](IndexT);
+
+    /// Returns a read/write view of a portion of our tensor (const).
+    __host__ __device__ inline
+    const detail::SubTensor<TensorType, Dim - 1, PtrTraits>
+    operator[](IndexT) const;
 
     /// Returns the size of a given dimension, `[0, Dim - 1]`. No bounds
     /// checking.
@@ -139,6 +196,283 @@ protected:
     /// Size per each dimension
     IndexT size_[Dim];
 };
+
+namespace detail {
+
+/// Specialization for a view of a single value (0-dimensional)
+template <typename TensorType, template <typename U> class PtrTraits>
+class SubTensor<TensorType, 0, PtrTraits> {
+public:
+    __host__ __device__ SubTensor<TensorType, 0, PtrTraits>
+    operator=(typename TensorType::DataType val) {
+        *data_ = val;
+        return *this;
+    }
+
+    // operator T&
+    __host__ __device__ operator typename TensorType::DataType&() {
+        return *data_;
+    }
+
+    // const operator T& returning const T&
+    __host__ __device__ operator const typename TensorType::DataType&() const {
+        return *data_;
+    }
+
+    // operator& returning T*
+    __host__ __device__ typename TensorType::DataType* operator&() {
+        return data_;
+    }
+
+    // const operator& returning const T*
+    __host__ __device__ const typename TensorType::DataType* operator&() const {
+        return data_;
+    }
+
+    /// Returns a raw accessor to our slice.
+    __host__ __device__ inline typename TensorType::DataPtrType data() {
+        return data_;
+    }
+
+    /// Returns a raw accessor to our slice (const).
+    __host__ __device__ inline
+    const typename TensorType::DataPtrType data() const {
+        return data_;
+    }
+
+    /// Cast to a different datatype.
+    template <typename T>
+    __host__ __device__ T& as() {
+        return *dataAs<T>();
+    }
+
+    /// Cast to a different datatype (const).
+    template <typename T>
+    __host__ __device__ const T& as() const {
+        return *dataAs<T>();
+    }
+
+    /// Cast to a different datatype
+    template <typename T>
+    __host__ __device__ inline
+    typename PtrTraits<T>::PtrType dataAs() {
+        return reinterpret_cast<typename PtrTraits<T>::PtrType>(data_);
+    }
+
+    /// Cast to a different datatype (const)
+    template <typename T>
+    __host__ __device__ inline
+    typename PtrTraits<const T>::PtrType dataAs() const {
+        return reinterpret_cast<typename PtrTraits<const T>::PtrType>(data_);
+    }
+
+    /// Use the texture cache for reads
+    __device__ inline typename TensorType::DataType ldg() const {
+#if __CUDA_ARCH__ >= 350
+        return __ldg(data_);
+#else
+        return *data_;
+#endif
+    }
+
+    /// Use the texture cache for reads; cast as a particular type
+    template <typename T>
+    __device__ inline T ldgAs() const {
+#if __CUDA_ARCH__ >= 350
+        return __ldg(dataAs<T>());
+#else
+        return as<T>();
+#endif
+    }
+
+protected:
+    /// One dimension greater can create us
+    friend class SubTensor<TensorType, 1, PtrTraits>;
+
+    /// Our parent tensor can create us
+    friend class Tensor<typename TensorType::DataType,
+                        1,
+                        TensorType::IsInnerContig,
+                        typename TensorType::IndexType,
+                        PtrTraits>;
+
+    __host__ __device__ inline SubTensor(
+        TensorType& t,
+        typename TensorType::DataPtrType data)
+        : tensor_(t),
+          data_(data) {
+    }
+
+    /// The tensor we're referencing
+    TensorType& tensor_;
+
+    /// Where our value is located
+    typename TensorType::DataPtrType const data_;
+};
+
+/// A `SubDim`-rank slice of a parent Tensor
+template <typename TensorType,
+    int SubDim,
+    template <typename U> class PtrTraits>
+class SubTensor {
+public:
+    /// Returns a view of the data located at our offset (the dimension
+    /// `SubDim` - 1 tensor).
+    __host__ __device__ inline
+    SubTensor<TensorType, SubDim - 1, PtrTraits>
+    operator[](typename TensorType::IndexType index) {
+        if (TensorType::IsInnerContig && SubDim == 1) {
+            // Innermost dimension is stride 1 for contiguous arrays
+            return SubTensor<TensorType, SubDim - 1, PtrTraits>(
+                tensor_, data_ + index);
+        } else {
+            return SubTensor<TensorType, SubDim - 1, PtrTraits>(
+                tensor_,
+                data_ + index * tensor_.getStride(TensorType::NumDim - SubDim));
+        }
+    }
+
+    /// Returns a view of the data located at our offset (the dimension
+    /// `SubDim` - 1 tensor) (const).
+    __host__ __device__ inline
+    const SubTensor<TensorType, SubDim - 1, PtrTraits>
+    operator[](typename TensorType::IndexType index) const {
+        if (TensorType::IsInnerContig && SubDim == 1) {
+            // Innermost dimension is stride 1 for contiguous arrays
+            return SubTensor<TensorType, SubDim - 1, PtrTraits>(
+                tensor_, data_ + index);
+        } else {
+            return SubTensor<TensorType, SubDim - 1, PtrTraits>(
+                tensor_,
+                data_ + index * tensor_.getStride(TensorType::NumDim - SubDim));
+        }
+    }
+
+    // operator& returning T*
+    __host__ __device__ typename TensorType::DataType* operator&() {
+        return data_;
+    }
+
+    // const operator& returning const T*
+    __host__ __device__ const typename TensorType::DataType* operator&() const {
+        return data_;
+    }
+
+    /// Returns a raw accessor to our slice.
+    __host__ __device__ inline typename TensorType::DataPtrType data() {
+        return data_;
+    }
+
+    /// Returns a raw accessor to our slice (const).
+    __host__ __device__ inline
+    const typename TensorType::DataPtrType data() const {
+        return data_;
+    }
+
+    /// Cast to a different datatype.
+    template <typename T>
+    __host__ __device__ T& as() {
+        return *dataAs<T>();
+    }
+
+    /// Cast to a different datatype (const).
+    template <typename T>
+    __host__ __device__ const T& as() const {
+        return *dataAs<T>();
+    }
+
+    /// Cast to a different datatype
+    template <typename T>
+    __host__ __device__ inline
+    typename PtrTraits<T>::PtrType dataAs() {
+        return reinterpret_cast<typename PtrTraits<T>::PtrType>(data_);
+    }
+
+    /// Cast to a different datatype (const)
+    template <typename T>
+    __host__ __device__ inline
+    typename PtrTraits<const T>::PtrType dataAs() const {
+        return reinterpret_cast<typename PtrTraits<const T>::PtrType>(data_);
+    }
+
+    /// Use the texture cache for reads
+    __device__ inline typename TensorType::DataType ldg() const {
+#if __CUDA_ARCH__ >= 350
+        return __ldg(data_);
+#else
+        return *data_;
+#endif
+    }
+
+    /// Use the texture cache for reads; cast as a particular type
+    template <typename T>
+    __device__ inline T ldgAs() const {
+#if __CUDA_ARCH__ >= 350
+        return __ldg(dataAs<T>());
+#else
+        return as<T>();
+#endif
+    }
+
+    /// Returns a tensor that is a view of the SubDim-dimensional slice
+    /// of this tensor, starting where our data begins
+    Tensor<typename TensorType::DataType,
+           SubDim,
+           TensorType::IsInnerContig,
+           typename TensorType::IndexType,
+           PtrTraits> view() {
+        return tensor_.template view<SubDim>(data_);
+    }
+
+protected:
+    /// One dimension greater can create us
+    friend class SubTensor<TensorType, SubDim + 1, PtrTraits>;
+
+    /// Our parent tensor can create us
+    friend class
+        Tensor<typename TensorType::DataType,
+               TensorType::NumDim,
+               TensorType::IsInnerContig,
+               typename TensorType::IndexType,
+               PtrTraits>;
+
+    __host__ __device__ inline SubTensor(
+        TensorType& t,
+        typename TensorType::DataPtrType data)
+        : tensor_(t),
+          data_(data) {
+    }
+
+    /// The tensor we're referencing
+    TensorType& tensor_;
+
+    /// The start of our sub-region
+    typename TensorType::DataPtrType const data_;
+};
+
+} // namespace detail
+
+template <typename T, int Dim, bool InnerContig,
+    typename IndexT, template <typename U> class PtrTraits>
+__host__ __device__ inline
+detail::SubTensor<Tensor<T, Dim, InnerContig, IndexT, PtrTraits>,
+                  Dim - 1, PtrTraits>
+Tensor<T, Dim, InnerContig, IndexT, PtrTraits>::operator[](IndexT index) {
+    return detail::SubTensor<TensorType, Dim - 1, PtrTraits>(
+        detail::SubTensor<TensorType, Dim, PtrTraits>(
+            *this, data_)[index]);
+}
+
+template <typename T, int Dim, bool InnerContig,
+    typename IndexT, template <typename U> class PtrTraits>
+__host__ __device__ inline
+const detail::SubTensor<Tensor<T, Dim, InnerContig, IndexT, PtrTraits>,
+                        Dim - 1, PtrTraits>
+Tensor<T, Dim, InnerContig, IndexT, PtrTraits>::operator[](IndexT index) const {
+    return detail::SubTensor<TensorType, Dim - 1, PtrTraits>(
+        detail::SubTensor<TensorType, Dim, PtrTraits>(
+            const_cast<TensorType&>(*this), data_)[index]);
+}
 
 }}
 

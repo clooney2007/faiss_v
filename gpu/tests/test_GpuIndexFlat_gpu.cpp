@@ -41,8 +41,8 @@ struct TestFlatOptions {
 #define randVal(a,b) a + (lrand48() % (b + 1 - a))
 
 // parameters to use for the test
-int d = 64;
-size_t nb = 1000;
+int d = 1024;
+size_t nb = 100000;
 size_t nq = 100;
 int k = 10;
 
@@ -54,13 +54,13 @@ struct CommonData {
     faiss_v::gpu::GpuIndexFlatL2* gpu_index;
     int numVecs;
     int dim;
-    int device = 0;
+    int device = 1;
     int numQuery;
 
     CommonData(const TestFlatOptions& opt) {
         srand48(time(0));
-        numVecs = opt.numVecsOverride > 0 ? opt.numVecsOverride : randVal(1000, 20000);
-        dim = randVal(50, 800);
+        numVecs = opt.numVecsOverride > 0 ? opt.numVecsOverride : randVal(50000, 100000);
+        dim = randVal(1000, 1500);
         numQuery = opt.numQueriesOverride > 0 ? opt.numQueriesOverride : randVal(1, 512);
 
         faiss_v::gpu::GpuIndexFlatConfig config;
@@ -84,6 +84,7 @@ struct CommonData {
         }
         std::cout << "here" << std::endl;
         gpu_index->add(numVecs, database.data());
+        while (true) {}
     }
 };
 

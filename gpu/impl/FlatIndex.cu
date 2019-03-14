@@ -5,6 +5,7 @@
 */
 
 #include "FlatIndex.cuh"
+#include "L2Norm.cuh"
 #include "../utils/CopyUtils.cuh"
 
 namespace faiss_v { namespace gpu {

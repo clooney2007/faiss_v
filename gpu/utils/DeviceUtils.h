@@ -28,6 +28,13 @@ const cudaDeviceProp& getDeviceProperties(int device);
 /// Returns the cached cudaDeviceProp for the current device
 const cudaDeviceProp& getCurrentDeviceProperties();
 
+/// Returns the maximum number of threads available for the given GPU
+/// device
+int getMaxThreads(int device);
+
+/// Equivalent to getMaxThreads(getCurrentDevice())
+int getMaxThreadsCurrentDevice();
+
 /// Does the given device support full unified memory sharing host memory?
 bool getFullUnifiedMemSupport(int device);
 
@@ -49,6 +56,20 @@ public:
 private:
     int prevDevice_;
 };
+
+/// Wrapper to synchronously probe for CUDA errors
+// #define FAISS_GPU_SYNC_ERROR 1
+#ifdef FAISS_GPU_SYNC_ERROR
+#define CUDA_TEST_ERROR()                       \
+  do {                                          \
+    CUDA_VERIFY(cudaDeviceSynchronize());       \
+  } while (0)
+#else
+#define CUDA_TEST_ERROR()                       \
+  do {                                          \
+    CUDA_VERIFY(cudaGetLastError());            \
+  } while (0)
+#endif
 
 /// Wrapper to test return status of CUDA functions
 #define CUDA_VERIFY(X)                                                      \

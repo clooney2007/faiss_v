@@ -24,6 +24,10 @@ public:
     /// requests will call cudaMalloc / cudaFree at the point of use
     void noTempMemory();
 
+    /// Specify that we wish to use a certain fixed size of memory on
+    /// all devices as temporary memory
+    void setTempMemory(size_t size);
+
 public:
     /// Internal system calls
     void initializeForDevice(int device) override;

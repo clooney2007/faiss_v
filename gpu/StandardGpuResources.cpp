@@ -3,7 +3,7 @@
  * Email:  lichlee@yeah.net
  * Created on 2019/01/16.
 */
-
+#include <cstdio>
 #include "StandardGpuResources.h"
 
 namespace faiss_v { namespace gpu {
@@ -17,17 +17,60 @@ constexpr float kDefaultTempMemFraction = 0.18f;
 constexpr size_t kDefaultPinnedMemoryAllocation = (size_t) 256 * 1024 * 1024;
 
 
-StandardGpuResources::StandardGpuResources() {
-
+StandardGpuResources::StandardGpuResources()
+    : pinnedMemAlloc_(nullptr),
+      pinnedMemAllocSize_(0),
+      tempMemFraction_(kDefaultTempMemFraction),
+      tempMemSize_(0),
+      useFraction_(true),
+      pinnedMemSize_(kDefaultPinnedMemoryAllocation) {
 }
 
 StandardGpuResources::~StandardGpuResources() {
+    for (auto& entry : defaultStreams_) {
+        DeviceScope scope(entry.first);
 
+        auto it = userDefaultStreams_.find(entry.first);
+        if (it == userDefaultStreams_.end()) {
+            CUDA_VERIFY(cudaStreamDestroy(entry.second));
+        }
+    }
+
+    for (auto& entry : alternateStreams_) {
+        DeviceScope scope(entry.first);
+
+        for (auto stream : entry.second) {
+            CUDA_VERIFY(cudaStreamDestroy(stream));
+        }
+    }
+
+    for (auto& entry : asyncCopyStreams_) {
+        DeviceScope scope(entry.first);
+
+        CUDA_VERIFY(cudaStreamDestroy(entry.second));
+    }
+
+    for (auto& entry : blasHandles_) {
+        DeviceScope scope(entry.first);
+
+        auto blasStatus = cublasDestroy(entry.second);
+        FAISSV_ASSERT(blasStatus == CUBLAS_STATUS_SUCCESS);
+    }
+
+    if (pinnedMemAlloc_) {
+        CUDA_VERIFY(cudaFreeHost(pinnedMemAlloc_));
+    }
 }
 
 void
 StandardGpuResources::noTempMemory() {
+    setTempMemory(0);
+}
 
+void
+StandardGpuResources::setTempMemory(size_t size) {
+    useFraction_ = false;
+    tempMemSize_ = size;
 }
 
 void

@@ -54,6 +54,14 @@ const cudaDeviceProp& getCurrentDeviceProperties() {
     return getDeviceProperties(getCurrentDevice());
 }
 
+int getMaxThreads(int device) {
+    return getDeviceProperties(device).maxThreadsPerBlock;
+}
+
+int getMaxThreadsCurrentDevice() {
+    return getMaxThreads(getCurrentDevice());
+}
+
 int getDeviceForAddress(const void* p) {
     if (!p) {
         return -1;
